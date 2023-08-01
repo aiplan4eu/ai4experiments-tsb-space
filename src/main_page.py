@@ -1,6 +1,9 @@
+from functools import partial
 from generate_request import all_activities
 
 import justpy as jp
+
+from gui import Gui, my_click, activity_str
 
 LEFT_MARGIN, RIGHT_MARGIN = " margin-left: 10px; ", " margin-right: 20px; "
 
@@ -56,13 +59,7 @@ CLEAR_PLAN_BUTTON_CLASS = ADD_BUTTON_CLASS
 CLEAR_PLAN_BUTTON_STYLE = "font-weight: semibold; font-size: 20px;"
 
 
-chosen_activities = ["AAAAAA", "BBBBBB", "AAAAA", "CCCCC"]
-# chosen_activities = []
-
-chosen_plan = chosen_activities
-
-@jp.SetRoute("/")
-def main_page():
+def main_page(gui: Gui):
     wp = jp.WebPage(delete_flag = False)
     wp.page_type = 'main'
     title_div = jp.Div(
@@ -145,6 +142,7 @@ def main_page():
             classes=ADD_BUTTON_CLASS,
             style=ADD_BUTTON_STYLE,
         )
+        act_button.on('click', partial(my_click, act, gui))
 
     goals_div = jp.Div(
         a=main_body_div,
@@ -152,21 +150,22 @@ def main_page():
         classes=GOALS_DIV_CLASS,
         style=GOALS_DIV_STYLE,
     )
+
     goals_container_div = jp.Div(
         a=goals_div,
         classes=GOALS_CONTAINER_DIV_CLASS,
         style=GOALS_CONTAINER_DIV_STYLE,
     )
-    for i, g in enumerate(chosen_activities):
-        single_goal_p = jp.P(
-            a=goals_container_div,
-            text=f"{i+1}) {g}"
-        )
+    gui.goals_container_div = goals_container_div
+
+    gui.update_chosen_activities()
+
     clear_solve_buttons_div = jp.Div(
         a=goals_div,
         classes=CLEAR_SOLVE_BUTTONS_DIV_CLASS,
         style=CLEAR_SOLVE_BUTTONS_DIV_STYLE,
     )
+
     clear = jp.Input(
         a=clear_solve_buttons_div,
         value="CLEAR",
@@ -174,6 +173,7 @@ def main_page():
         classes=CLEAR_SOLVE_BUTTONS_CLASS,
         style=CLEAR_SOLVE_BUTTONS_STYLE,
     )
+    clear.on('click', gui.clear_activities_click)
     solve = jp.Input(
         a=clear_solve_buttons_div,
         value="SOLVE",
@@ -181,6 +181,7 @@ def main_page():
         classes=CLEAR_SOLVE_BUTTONS_CLASS,
         style=CLEAR_SOLVE_BUTTONS_STYLE,
     )
+    solve.on('click', gui.generate_problem_click)
 
     # Useless div, added just as a place-holder
     _ = jp.Div(
@@ -196,18 +197,27 @@ def main_page():
         style=PLAN_DIV_STYLE,
     )
 
-    for p in chosen_plan:
+    if gui.plan is None:
         single_p = jp.P(
             a=plan_div,
-            text=f"- {p}",
+            text="No plan found yet.",
+            classes=PLAN_PART_P_CLASS,
+            style=PLAN_PART_P_STYLE,
+        )
+    else:
+        for plan_activity in gui.plan:
+            text = activity_str(plan_activity)
+            single_p = jp.P(
+                a=plan_div,
+                text=text,
+                classes=PLAN_PART_P_CLASS,
+                style=PLAN_PART_P_STYLE,
+            )
+        single_p = jp.P(
+            a=plan_div,
+            text=f"It reaches {gui.reached_goals} goals.",
             classes=PLAN_PART_P_CLASS,
             style=PLAN_PART_P_STYLE,
         )
 
-
-
-
-
     return wp
-
-jp.justpy(main_page)

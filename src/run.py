@@ -18,7 +18,7 @@ import justpy as jp
 from up_grafene_engine.engine import GrafeneEngine
 
 
-from gui import Gui, main_page, Mode, reload_page
+from gui import Gui, Mode, reload_page
 from generate_request import generate_request_str
 from modified_planning import planning
 from threading import Thread
@@ -29,7 +29,7 @@ def main():
 
     engine = GrafeneEngine(port=8061)
 
-    gui = Gui(engine)
+    gui = Gui()
 
     gui_thread = Thread(target=gui.show_gui_thread)
     gui_thread.start()
@@ -38,17 +38,10 @@ def main():
         # wait for the user input to start planning
         gui.start_queue.get(block=True)
         request = generate_request_str(gui.activities)
-        activity_plan, n_goals = planning(request, gui)
-
-        if activity_plan:
-            ap_str = "\n".join(map(activity_str, activity_plan))
-        else:
-            ap_str = "No activity plan found"
+        activity_plan, n_goals = planning(request, engine)
 
         gui.update_plan(activity_plan, n_goals)
 
-        gui.logger.info(ap_str)
-        # gui.display_text(f"The activity plan is:\n {ap_str}\n \nIt reaches {n_goals} goals")
         gui.mode = Mode.GENERATING_PROBLEM
         asyncio.run(reload_page())
 

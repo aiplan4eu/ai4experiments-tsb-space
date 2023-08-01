@@ -8,7 +8,7 @@ from planning import get_activity_name, get_available_resources, is_valid, encod
 from typing import Tuple
 from utils import Activity
 from generate_model import generate_planning_model, convert_to_non_temporal_model
-from gui import Gui
+from up_grafene_engine.engine import  GrafeneEngine
 
 from unified_planning.shortcuts import *
 import unified_planning as up
@@ -27,7 +27,7 @@ models_dir = os.path.join(tsb_space_src_dir, '..', 'models')
 # sys.path.append(tsb_space_src_dir)
 
 
-def planning(request, gui: Gui):
+def planning(request, engine: GrafeneEngine):
     logging.info("Generating planning problem...")
 
     with open(os.path.join(models_dir, 'atlmodel.xml')) as f:
@@ -55,8 +55,8 @@ def planning(request, gui: Gui):
         for i, g in enumerate(goals):
             new_problem.clear_goals()
             new_problem.add_goal(g)
-            gui.problems_queue.put(new_problem)
-            plan = gui.plans_queue.get(block = True)
+            res = engine.solve(new_problem, "solved_optimally")
+            plan = res.plan
             if plan is not None:
                 state = simulator.get_initial_state()
                 for ai in plan.actions:

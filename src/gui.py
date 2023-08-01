@@ -1,21 +1,19 @@
+
 import asyncio
-from concurrent import futures
 from enum import Enum, auto
 from functools import partial
 
 import logging
 import os
-import grpc
 import queue
 import justpy as jp
 
-import grpc_io.tsb_space_pb2 as op_pb2
-import grpc_io.tsb_space_pb2_grpc as op_pb2_grpc
 
 import unified_planning as up
 from unified_planning.shortcuts import *
 
 from generate_request import all_activities
+
 
 DEBUG = False
 BUTTON_CLASS = 'bg-transparent hover:bg-blue-500 text-blue-700 font-semibold hover:text-white py-2 px-4 border border-blue-500 hover:border-transparent rounded m-2'
@@ -34,75 +32,52 @@ curr_dir = os.path.dirname(os.path.abspath(__file__))
 models_dir = os.path.join(curr_dir, 'models')
 
 
-def my_click(activity, gui, component, msg):
-    gui.logger.info("Clicked activity: " + activity + f"with mode: {gui.mode}")
-    # gui.display_debug("Clicked activity: " + activity + f"with mode: {gui.mode}")
-    assert activity in all_activities.keys()
-    if gui.mode == Mode.GENERATING_PROBLEM:
-        gui.activities.append(activity)
-        gui.update_activity_div()
-
 
 class Gui():
     def __init__(self):
-        self.problems_queue = queue.Queue()
-        self.plans_queue = queue.Queue()
         # a queue where the interface waits the start
         self.start_queue = queue.Queue()
 
-        self.text_div  = jp.Div(
-            text='Plan will be displayed here',
-            classes='',
-            style= PLAN_DIV_STYLE,
-        )
-        self.debug_div  = jp.Div(
-            text='Debug will be displayed here',
-            classes='',
-        )
-        self.activity_div = jp.Div(
-            text='Chosen activities will be displayed here',
-            classes=DIV_CLASS,
-            style = ACTIVITY_DIV_STYLE,
-        )
         self.mode = Mode.GENERATING_PROBLEM
         self.activities = []
+        self.plan = None
+        self.reached_goals = 0
+
+        self.goals_container_div: Optional[jp.Div] = None
 
         self.logger = logging.getLogger(__name__)
         logging.basicConfig(format='%(asctime)s %(message)s')
         self.logger.setLevel(logging.INFO)
 
-    def update_activity_div(self):
-        if self.activities:
-            activity_text = "Chosen activities:"
-        else:
-            activity_text = f'Chosen activities will be displayed here'
-        self.activity_div.text = activity_text
-
-        self.activity_div.delete_components()
-        for i, a in enumerate(self.activities):
-            d = jp.Div(
-                text=f" {i+1}) {a}",
-                classes='',
-                a=self.activity_div,
-                style=ACTIVITY_DIV_STYLE,
-            )
-        self.activity_div.update()
+    def update_chosen_activities(self):
+        if self.goals_container_div is not None:
+            self.goals_container_div.delete_components()
+            for i, g in enumerate(self.activities):
+                single_goal_p = jp.P(
+                    a=self.goals_container_div,
+                    text=f"{i+1}) {g}"
+                )
 
     def clear_activities_click(self, msg):
 
         self.logger.info("Clearing")
         if self.mode == Mode.GENERATING_PROBLEM:
             self.activities = []
-            self.update_activity_div()
+            self.update_chosen_activities()
 
     def clear_plan_click(self, msg):
 
+        #TODO create the button that does this
         self.logger.info("Clearing plan")
         if self.mode == Mode.GENERATING_PROBLEM:
-            self.text_div.delete_components()
-            self.text_div.update()
+            self.plan = None
+
+    def update_plan(self, activity_plan, reached_goals):
+        self.plan = activity_plan
+        self.reached_goals = reached_goals
 
     def show_gui_thread(self):
+        from main_page import main_page
         @jp.SetRoute("/")
         def get_main_page():
             return main_page(self)
@@ -135,7 +110,15 @@ class Gui():
             self.debug_div.text = text
             self.debug_div.update()
 
-def main_page(gui):
+def my_click(activity, gui: Gui, component, msg):
+    gui.logger.info("Clicked activity: " + activity + f"with mode: {gui.mode}")
+    # gui.display_debug("Clicked activity: " + activity + f"with mode: {gui.mode}")
+    assert activity in all_activities.keys()
+    if gui.mode == Mode.GENERATING_PROBLEM:
+        gui.activities.append(activity)
+        gui.update_chosen_activities()
+
+def _main_page_(gui):
     wp = jp.WebPage(delete_flag = False)
     wp.page_type = 'main'
     assert isinstance(gui, Gui), f"{gui}"
