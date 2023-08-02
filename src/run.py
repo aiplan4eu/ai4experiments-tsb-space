@@ -38,11 +38,11 @@ def main():
         # wait for the user input to start planning
         gui.start_queue.get(block=True)
         request = generate_request_str(gui.activities)
-        activity_plan, n_goals = planning(request, engine)
+        activity_plan, n_goals = planning(request, engine, gui, reload_page)
 
         gui.update_plan(activity_plan, n_goals)
 
-        gui.mode = Mode.GENERATING_PROBLEM
+        gui.reset_execution()
         asyncio.run(reload_page())
 
 

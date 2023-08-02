@@ -1,5 +1,6 @@
 import os
 import requests
+import asyncio
 import logging
 import xml.etree.ElementTree as ET
 
@@ -9,6 +10,7 @@ from typing import Tuple
 from utils import Activity
 from generate_model import generate_planning_model, convert_to_non_temporal_model
 from up_grafene_engine.engine import  GrafeneEngine
+from gui import Gui
 
 from unified_planning.shortcuts import *
 import unified_planning as up
@@ -27,13 +29,11 @@ models_dir = os.path.join(tsb_space_src_dir, '..', 'models')
 # sys.path.append(tsb_space_src_dir)
 
 
-def planning(request, engine: GrafeneEngine):
+def planning(request, engine: GrafeneEngine, gui: Gui, reload_page):
     logging.info("Generating planning problem...")
 
     with open(os.path.join(models_dir, 'atlmodel.xml')) as f:
         atlmodel = f.read()
-
-    use_rehearsal_to_validate = os.environ.get('USE_REHEARSAL_TO_VALIDATE') == 'TRUE'
 
     _, _, _, template_activities = parse_atlmodel(atlmodel, False)
     problem, activity_params_mapping, tobj_to_val, extra_params = generate_planning_model(atlmodel, request)
@@ -53,6 +53,12 @@ def planning(request, engine: GrafeneEngine):
         simulator = up.engines.UPSequentialSimulator(new_problem)
         activity_plan = []
         for i, g in enumerate(goals):
+            # Update guy to show progress
+            gui.total_planning_goals = len(goals)
+            gui.reached_planning_goals = i
+            gui.update_planning_execution()
+            asyncio.run(reload_page())
+
             new_problem.clear_goals()
             new_problem.add_goal(g)
             res = engine.solve(new_problem, "solved_optimally")
@@ -88,24 +94,6 @@ def planning(request, engine: GrafeneEngine):
             else:
                 activity_plan = None
                 break
-
-        if activity_plan is None:
-            break
-        elif use_rehearsal_to_validate:
-            logging.info("Found a plan. Validating it using RAAS...")
-            is_val, missing_resources = is_valid(request, activity_plan, len(goals))
-            if is_val:
-                break
-            elif missing_resources:
-                goals = goals[:-1]
-                activity_plan = None
-                logging.info("Not able to find an activity plan with the given resources! Planning again removing last goal activity...")
-                if len(goals) == 0:
-                    logging.info("No goal activities left!")
-            else:
-                break
-        else:
-            break
 
     if activity_plan is None:
         logging.info("No activity plan found!")

@@ -23,7 +23,8 @@ SINGLE_DESCRIPTION_STYLE = LEFT_MARGIN + RIGHT_MARGIN
 
 
 MAIN_BODY_DIV_CLASS = "grid justify-between grid-cols-3 gap-7"
-MAIN_BODY_DIV_STYLE = "grid-template-columns: minmax(max-content, 25%) minmax(max-content, 25%) 10px minmax(max-content, 33%); width: 100vw; margin-top: 15px;" + LEFT_MARGIN + RIGHT_MARGIN
+# MAIN_BODY_DIV_STYLE = "grid-template-columns: minmax(max-content, 25%) minmax(max-content, 25%) 10px minmax(max-content, 33%); width: 100vw; margin-top: 15px;" + LEFT_MARGIN + RIGHT_MARGIN
+MAIN_BODY_DIV_STYLE = "grid-template-columns: max-content max-content 10px 1fr; width: 100vw; margin-top: 15px;" + LEFT_MARGIN + RIGHT_MARGIN
 
 ACTIONS_DIV_CLASS = "grid"
 # Setting height to 0 it'sa trick to solve the problem of the goal div changing size
@@ -41,7 +42,7 @@ GOALS_DIV_STYLE = "font-size: 30px; font-weight: semibold;"
 min_goal_box_height = len(all_activities) * 63
 GOALS_CONTAINER_DIV_CLASS = ""
 GOALS_CONTAINER_DIV_STYLE = f"border: 1px solid #000; min-height: {min_goal_box_height}px; font-weight: normal; font-size: 20px;\
- background-color:  #e1eff7; right-margin: 50px;"
+ background-color:  #e1eff7; right-margin: 50px; width: 350px;"
 
 CLEAR_SOLVE_BUTTONS_DIV_CLASS = "flex grid-cols-2"
 CLEAR_SOLVE_BUTTONS_DIV_STYLE = ""
@@ -50,10 +51,10 @@ CLEAR_SOLVE_BUTTONS_CLASS = ADD_BUTTON_CLASS
 CLEAR_SOLVE_BUTTONS_STYLE = "font-weight: semibold; font-size: 20px;"
 
 PLAN_DIV_CLASS = ""
-PLAN_DIV_STYLE = "font-size: 30px; font-weight: semibold;"
+PLAN_DIV_STYLE = f"font-size: 30px; font-weight: semibold;"
 
 PLAN_PART_P_CLASS = ""
-PLAN_PART_P_STYLE = "font-weight: normal; font-size: 20px;"
+PLAN_PART_P_STYLE = f"font-weight: normal; font-size: 20px;"
 
 CLEAR_PLAN_BUTTON_CLASS = ADD_BUTTON_CLASS
 CLEAR_PLAN_BUTTON_STYLE = "font-weight: semibold; font-size: 20px;"
@@ -196,28 +197,31 @@ def main_page(gui: Gui):
         classes=PLAN_DIV_CLASS,
         style=PLAN_DIV_STYLE,
     )
+    gui.plan_div = plan_div
 
-    if gui.plan is None:
-        single_p = jp.P(
-            a=plan_div,
-            text="No plan found yet.",
-            classes=PLAN_PART_P_CLASS,
-            style=PLAN_PART_P_STYLE,
-        )
-    else:
-        for plan_activity in gui.plan:
-            text = activity_str(plan_activity)
-            single_p = jp.P(
-                a=plan_div,
-                text=text,
-                classes=PLAN_PART_P_CLASS,
-                style=PLAN_PART_P_STYLE,
-            )
-        single_p = jp.P(
-            a=plan_div,
-            text=f"It reaches {gui.reached_goals} goals.",
-            classes=PLAN_PART_P_CLASS,
-            style=PLAN_PART_P_STYLE,
-        )
+    gui.update_planning_execution()
+
+    # if gui.plan is None:
+    #     single_p = jp.P(
+    #         a=plan_div,
+    #         text="No plan found yet.",
+    #         classes=PLAN_PART_P_CLASS,
+    #         style=PLAN_PART_P_STYLE,
+    #     )
+    # else:
+    #     for plan_activity in gui.plan:
+    #         text = activity_str(plan_activity)
+    #         single_p = jp.P(
+    #             a=plan_div,
+    #             text=text,
+    #             classes=PLAN_PART_P_CLASS,
+    #             style=PLAN_PART_P_STYLE,
+    #         )
+    #     single_p = jp.P(
+    #         a=plan_div,
+    #         text=f"It reaches {gui.reached_goals} goals.",
+    #         classes=PLAN_PART_P_CLASS,
+    #         style=PLAN_PART_P_STYLE,
+    #     )
 
     return wp

@@ -7,6 +7,7 @@ import logging
 import os
 import queue
 import justpy as jp
+# FOR FUTURE PROJECTS: check out the justpy.react functionality: https://justpy.io/blog/reactivity/
 
 
 import unified_planning as up
@@ -44,10 +45,18 @@ class Gui():
         self.reached_goals = 0
 
         self.goals_container_div: Optional[jp.Div] = None
+        self.plan_div: Optional[jp.Div] = None
 
         self.logger = logging.getLogger(__name__)
         logging.basicConfig(format='%(asctime)s %(message)s')
         self.logger.setLevel(logging.INFO)
+        self.total_planning_goals = -1
+        self.reached_planning_goals = -1
+
+    def reset_execution(self):
+        self.mode = Mode.GENERATING_PROBLEM
+        self.total_planning_goals = -1
+        self.reached_planning_goals = -1
 
     def update_chosen_activities(self):
         if self.goals_container_div is not None:
@@ -58,12 +67,61 @@ class Gui():
                     text=f"{i+1}) {g}"
                 )
 
+    def update_planning_execution(self):
+        from main_page import PLAN_PART_P_CLASS, PLAN_PART_P_STYLE
+        if self.plan_div is not None:
+            self.plan_div.delete_components()
+            if self.plan is None and self.mode == Mode.GENERATING_PROBLEM:
+                single_p = jp.P(
+                    a=self.plan_div,
+                    text="Choose some activities and press SOLVE.",
+                    classes=PLAN_PART_P_CLASS,
+                    style=PLAN_PART_P_STYLE,
+                )
+            elif self.plan is None and self.mode == Mode.OPERATING:
+                single_p = jp.P(
+                    a=self.plan_div,
+                    text="Wait for planning to finish!",
+                    classes=PLAN_PART_P_CLASS,
+                    style=PLAN_PART_P_STYLE,
+                )
+                if self.reached_planning_goals != -1:
+                    single_p = jp.P(
+                        a=self.plan_div,
+                        text=f"Reached {self.reached_planning_goals}/{self.total_planning_goals} goals.",
+                        classes=PLAN_PART_P_CLASS,
+                        style=PLAN_PART_P_STYLE,
+                    )
+            else:
+                assert self.plan is not None
+                for plan_activity in self.plan:
+                    text = activity_str(plan_activity)
+                    single_p = jp.P(
+                        a=self.plan_div,
+                        text=text,
+                        classes=PLAN_PART_P_CLASS,
+                        style=PLAN_PART_P_STYLE,
+                    )
+                single_p = jp.P(
+                    a=self.plan_div,
+                    text=f"It reaches {self.reached_goals} goals.",
+                    classes=PLAN_PART_P_CLASS,
+                    style=PLAN_PART_P_STYLE,
+                )
+            try:
+                asyncio.run(self.plan_div.update())
+            except RuntimeError:
+                self.plan_div.update()
+
     def clear_activities_click(self, msg):
 
         self.logger.info("Clearing")
         if self.mode == Mode.GENERATING_PROBLEM:
             self.activities = []
+            self.plan = None
+            self.reached_goals = 0
             self.update_chosen_activities()
+            self.update_planning_execution()
 
     def clear_plan_click(self, msg):
 
@@ -87,28 +145,10 @@ class Gui():
         self.logger.info("Generating")
         if self.mode == Mode.GENERATING_PROBLEM:
             self.mode = Mode.OPERATING
+            self.plan = None
+            self.update_planning_execution()
             # unlock the planing method with the problem correctly generated
             self.start_queue.put(None)
-            self.display_text("Started planning... wait till finish")
-
-    def display_text(self, text: str):
-        actions = text.split("\n")
-        self.text_div.delete_components()
-        for action in actions:
-            d = jp.Div(
-                text=f"{action}",
-                classes='',
-                a=self.text_div,
-                style=PLAN_DIV_STYLE,
-            )
-        self.text_div.update()
-
-    def display_debug(self, text):
-        logging.debug(text)
-        self.logger.debug(text)
-        if DEBUG:
-            self.debug_div.text = text
-            self.debug_div.update()
 
 def my_click(activity, gui: Gui, component, msg):
     gui.logger.info("Clicked activity: " + activity + f"with mode: {gui.mode}")
@@ -196,13 +236,19 @@ async def reload_page():
 
 
 def activity_str(activity) -> str:
-    ret = ["-"]
+    ret = ["- "]
     if activity.ID:
         ret.append(f"ID: {activity.ID};")
     ret.append(f"{activity.name}")
     if activity.parameters:
         ret.append("(")
+        print_params_names = len(activity.parameters) < 6
+        params = []
         for k, v in activity.parameters:
-            ret.append(f"{k}={v},")
+            if print_params_names:
+                params.append(f"{k}={v}")
+            else:
+                params.append(f"{v}")
+        ret.append(", ".join(params))
         ret.append(")")
     return "".join(ret)
