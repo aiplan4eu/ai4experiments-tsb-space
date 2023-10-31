@@ -9,7 +9,7 @@ from planning import get_activity_name, get_available_resources, is_valid, encod
 from typing import Tuple
 from utils import Activity
 from generate_model import generate_planning_model, convert_to_non_temporal_model
-from up_grafene_engine.engine import  GrafeneEngine
+from up_graphene_engine.engine import  GrapheneEngine
 from gui import Gui
 
 from unified_planning.shortcuts import *
@@ -29,7 +29,7 @@ models_dir = os.path.join(tsb_space_src_dir, '..', 'models')
 # sys.path.append(tsb_space_src_dir)
 
 
-def planning(request, engine: GrafeneEngine, gui: Gui, reload_page):
+def planning(request, engine: GrapheneEngine, gui: Gui, reload_page):
     logging.info("Generating planning problem...")
 
     with open(os.path.join(models_dir, 'atlmodel.xml')) as f:

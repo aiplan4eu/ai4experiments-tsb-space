@@ -9,7 +9,7 @@ RUN cp /up-service/tsb-space/src/* /up-service/src
 
 RUN pip install -r requirements.txt
 
-RUN pip install /up-service/up-grafene-engine
+RUN pip install /up-service/up-graphene-engine
 
 EXPOSE 8061 8062
 

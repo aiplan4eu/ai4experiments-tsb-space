@@ -1,6 +1,6 @@
-[submodule "up-grafene-engine"]
-	path = up-grafene-engine
-	url = git@github.com:aiplan4eu/up-grafene-engine.git
 [submodule "tsb-space"]
 	path = tsb-space
 	url = git@github.com:aiplan4eu/tsb-space.git
+[submodule "up-graphene-engine"]
+	path = up-graphene-engine
+	url = git@github.com:aiplan4eu/up-graphene-engine.git

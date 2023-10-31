@@ -15,7 +15,7 @@ import sys
 import logging
 import justpy as jp
 
-from up_grafene_engine.engine import GrafeneEngine
+from up_graphene_engine.engine import GrapheneEngine
 
 
 from gui import Gui, Mode, reload_page
@@ -27,7 +27,7 @@ from threading import Thread
 
 def main():
 
-    engine = GrafeneEngine(port=8061)
+    engine = GrapheneEngine(port=8061)
 
     gui = Gui()
 
