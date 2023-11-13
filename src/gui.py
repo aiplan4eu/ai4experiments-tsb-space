@@ -13,7 +13,7 @@ import justpy as jp
 import unified_planning as up
 from unified_planning.shortcuts import *
 
-from generate_request import all_activities
+from generate_request import all_activities, activity_description_map
 
 
 DEBUG = False
@@ -22,8 +22,12 @@ BUTTON_CLASS = 'bg-transparent hover:bg-blue-500 text-blue-700 font-semibold hov
 ACTIVITY_DIV_STYLE = "color:blue;"
 PLAN_DIV_STYLE = "color:blue;"
 
-
 DIV_CLASS = "margin: auto; width: 50%;"
+
+ACTION_DETAILS_TEXT_CLASS = ""
+ACTION_DETAILS_TEXT_STYLE = f"margin-left: 0px; font-size: 18px; text-align: left;"
+
+
 class Mode(Enum):
     GENERATING_PROBLEM = auto()
     OPERATING = auto()
@@ -43,9 +47,11 @@ class Gui():
         self.activities = []
         self.plan = None
         self.reached_goals = 0
+        self.activity_info: Optional[str] = None
 
         self.goals_container_div: Optional[jp.Div] = None
         self.plan_div: Optional[jp.Div] = None
+        self.activity_details_div: Optional[jp.Div] = None
 
         self.logger = logging.getLogger(__name__)
         logging.basicConfig(format='%(asctime)s %(message)s')
@@ -66,6 +72,31 @@ class Gui():
                     a=self.goals_container_div,
                     text=f"{i+1}) {g}"
                 )
+
+    def update_activity_info(self):
+        self.activity_details_div.delete_components()
+        if self.activity_info is not None:
+
+            self.activity_details_div.text = "Activity info:"
+            image_path = f"/static/logos/activities/{self.activity_info.lower()}.png"
+            _ = jp.P(
+                a=self.activity_details_div,
+                text="",
+            )
+            action_details_img = jp.Img(
+                style="width: 130px; height: 130px;",
+                a=self.activity_details_div,
+                src=image_path,
+                classes="w3-image",
+            )
+            action_details_text = jp.P(
+                a=self.activity_details_div,
+                text=activity_description_map.get(self.activity_info, "Error: no text found for the action"),
+                classes=ACTION_DETAILS_TEXT_CLASS,
+                style=ACTION_DETAILS_TEXT_STYLE,
+                )
+        else:
+            self.activity_details_div.text = ""
 
     def update_planning_execution(self):
         from main_page import PLAN_PART_P_CLASS, PLAN_PART_P_STYLE
@@ -120,8 +151,11 @@ class Gui():
             self.activities = []
             self.plan = None
             self.reached_goals = 0
+            self.activity_info = None
             self.update_chosen_activities()
             self.update_planning_execution()
+            self.update_activity_info()
+
 
     def clear_plan_click(self, msg):
 
@@ -150,9 +184,16 @@ class Gui():
             # unlock the planing method with the problem correctly generated
             self.start_queue.put(None)
 
-def my_click(activity, gui: Gui, component, msg):
+
+def activity_info_click(name, gui: Gui, component, msg):
+    gui.logger.info("Clicked info: " + name + f"with mode: {gui.mode}")
+    assert name in all_activities.keys()
+    gui.activity_info = name
+    gui.update_activity_info()
+
+
+def activity_add_click(activity, gui: Gui, component, msg):
     gui.logger.info("Clicked activity: " + activity + f"with mode: {gui.mode}")
-    # gui.display_debug("Clicked activity: " + activity + f"with mode: {gui.mode}")
     assert activity in all_activities.keys()
     if gui.mode == Mode.GENERATING_PROBLEM:
         gui.activities.append(activity)

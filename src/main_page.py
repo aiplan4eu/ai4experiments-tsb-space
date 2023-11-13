@@ -3,7 +3,7 @@ from generate_request import all_activities, activity_description_map
 
 import justpy as jp
 
-from gui import Gui, my_click, activity_str
+from gui import Gui, activity_add_click, activity_str, ACTION_DETAILS_TEXT_CLASS, ACTION_DETAILS_TEXT_STYLE, activity_info_click
 
 
 # Scaling factor for downscaling by 10%
@@ -22,7 +22,8 @@ This is the integration of the tsb-space in the ai4experiments platform.
 It works by specifying a series of high-level activities that must be performed in the specified order.
 After the activity plan is defined, the planner decomposes each high-level activity into smaller actions that the robot performs to fulfill the plan.
 
-Press ADD to start adding activities, Press INFO to get information about a specific activity.
+- Press ADD to start adding activities.
+- Press INFO to get information about a specific activity.
 """
 SINGLE_DESCRIPTION_STYLE = f"{LEFT_MARGIN}{RIGHT_MARGIN}"
 
@@ -31,9 +32,6 @@ MAIN_BODY_DIV_STYLE = f"grid-template-columns: max-content max-content 9px 0.9fr
 
 ACTIVITY_DETAILS_DIV_CLASS = "grid"
 ACTIVITY_DETAILS_DIV_STYLE = f"grid-template-columns: max-content auto; font-size: 27px; font-weight: semibold; height: 0px;{LEFT_MARGIN}{RIGHT_MARGIN}"
-
-ACTION_DETAILS_TEXT_CLASS = ""
-ACTION_DETAILS_TEXT_STYLE = f"margin-left: 0px; font-size: 18px; text-align: left;"
 
 ACTIONS_DIV_CLASS = "grid"
 ACTIONS_DIV_STYLE = f"grid-template-columns: auto auto auto; font-size: 27px; font-weight: semibold; height: 0px; column-gap: 3px; row-gap: 2px;"
@@ -124,30 +122,7 @@ def main_page(gui: Gui):
         classes=ACTIVITY_DETAILS_DIV_CLASS,
         style=ACTIVITY_DETAILS_DIV_STYLE,
     )
-
-    # Function to update action details
-    def update_activity_details(name, activity_details_div, component, msg):
-
-        activity_details_div.text="Activity info:"
-        image_path = f"/static/logos/activities/{name.lower()}.png"
-        activity_details_div.delete_components()
-        _ = jp.P(
-            a=activity_details_div,
-            text="",
-        )
-
-        action_details_img = jp.Img(
-            style="width: 130px; height: 130px;",
-            a=activity_details_div,
-            src=image_path,
-            classes="w3-image",
-        )
-        action_details_text = jp.P(
-            a=activity_details_div,
-            text=activity_description_map.get(name, "Error: no text found for the action"),
-            classes=ACTION_DETAILS_TEXT_CLASS,
-            style=ACTION_DETAILS_TEXT_STYLE,
-            )
+    gui.activity_details_div = activity_details_div
 
     actions_div = jp.Div(
         a=main_body_div,
@@ -181,7 +156,7 @@ def main_page(gui: Gui):
             classes=ADD_BUTTON_CLASS,
             style=ADD_BUTTON_STYLE,
         )
-        act_button.on('click', partial(my_click, act, gui))
+        act_button.on('click', partial(activity_add_click, act, gui))
 
         info_button = jp.Input(
             a=actions_div,
@@ -190,7 +165,10 @@ def main_page(gui: Gui):
             classes=ADD_BUTTON_CLASS,
             style=ADD_BUTTON_STYLE,
         )
-        info_button.on('click', partial(update_activity_details, act, activity_details_div))
+        info_click = partial(activity_info_click, act, gui)
+        info_button.on('click', info_click)
+        if gui.activity_info == act:
+            info_click(None, None)
 
     goals_div = jp.Div(
         a=main_body_div,
