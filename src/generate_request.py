@@ -1,6 +1,17 @@
 import os
 from typing import List
 
+activity_description_map = {
+    "RV_WakeUp" : """Wait that the Rover Power generation goes over a configurable threshold (default ~20W). It can be used by Ground to link the execution of the subsequent surface activities to the "right" environmental conditions (i.e., when the power generation is sufficient), instead of using an Absolute Time. Note: The RVSW is automatically performing the RV configuration change between Night and Day according to the PCDE_NIGHT_FLAG [DAY/NIGHT], stored in the datapool. At this Activity, essential instruments warm-up and initialization is performed (warm-up and initialization of the Actuator Drive Electronics).""",
+    "GNC_FPATH_Straight" : """Travel to reach the drill area at the specified position with speed 32m/h and without acquiring Wisdom measurements.""",
+    "CLUPI_AcquireZScience_DrillArea" : """Drilling area observation (1 CLUPI color image of location to drill into acquired with the Drill Box at the low position).""",
+    "Collect_Sample" : """Reach the soil to collect the surface sample (up to 0.1m depth) and collect the sample (with the drill rod) starting from the actual position, by coring 30mm of soil.""",
+    "CLUPI_AcquireZScience_DrillFines" : """Drill generated fine dust observation by acquiring one CLUPI color image of drill  close area.""",
+    "Deliver_Sample" : """Deliver the sample (drill piston downlift coordinated with retraction) to deliver the collected sample into the Analytics Laboratory (ADL) inside the rover for further scientific analysis. """,
+    "RV_Prepare4Night" : """Wait that the Rover Power generation from the solar panels goes under a configurable threshold (default ~20W). It is used by Ground at the end of the daily activities planning. The Rover Software is automatically performing the Rover configuration change between Night and Day according to the PCDE_NIGHT_FLAG [DAY/NIGHT], stored in the datapool.""",
+}
+
+
 
 start = """<?xml version="1.0" encoding="UTF-8"?>
 <AcitivityPlanOptimizationRequest>
@@ -311,14 +322,6 @@ all_activities = {
               <Value>32.0</Value>
             </Parameter>
           </List_of_Parameters>
-        </RVR_Activity>
-""",
-    "RV_ConfigureReset" : """        <RVR_Activity>
-          <ID>RV_ConfigureReset</ID>
-          <Activity_No />
-          <Activity_Name>RV_ConfigureReset</Activity_Name>
-          <Activity_Type>EXEC</Activity_Type>
-          <List_of_Parameters count="0" />
         </RVR_Activity>
 """,
     "CLUPI_AcquireZScience_DrillArea" : """        <RVR_Activity>
@@ -836,6 +839,14 @@ all_activities = {
           <ID>Deliver_Sample</ID>
           <Activity_No />
           <Activity_Name>Deliver_Sample</Activity_Name>
+          <Activity_Type>EXEC</Activity_Type>
+          <List_of_Parameters count="0" />
+        </RVR_Activity>
+""",
+    "RV_Prepare4Night" : """        <RVR_Activity>
+          <ID>RV_Prepare4Night</ID>
+          <Activity_No />
+          <Activity_Name>RV_Prepare4Night</Activity_Name>
           <Activity_Type>EXEC</Activity_Type>
           <List_of_Parameters count="0" />
         </RVR_Activity>

@@ -1,67 +1,76 @@
 from functools import partial
-from generate_request import all_activities
+from generate_request import all_activities, activity_description_map
 
 import justpy as jp
 
 from gui import Gui, my_click, activity_str
 
-LEFT_MARGIN, RIGHT_MARGIN = " margin-left: 10px; ", " margin-right: 20px; "
+
+# Scaling factor for downscaling by 10%
+SCALE_FACTOR = 0.9
+
+LEFT_MARGIN, RIGHT_MARGIN = " margin-left: 9px; ", " margin-right: 18px; "
 
 TITLE_DIV_CLASS = "grid justify-between gap-2 grid-cols-3"
-TITLE_DIV_STYLE = "grid-template-columns: auto auto auto; margin-top: 15px;" + LEFT_MARGIN + RIGHT_MARGIN
+TITLE_DIV_STYLE = f"grid-template-columns: auto auto auto; margin-top: 13.5px;{LEFT_MARGIN}{RIGHT_MARGIN}"
 
-TITLE_TEXT_DIV_STYLE = "font-size: 80px; text-align: center; text-weight: bold;"
+TITLE_TEXT_DIV_STYLE = "font-size: 72px; text-align: center; font-weight: bold;"
 
-DESCRIPTION_STYLE = "margin-top: 15px; font-size: 20px;" + LEFT_MARGIN + RIGHT_MARGIN
+DESCRIPTION_STYLE = f"margin-top: 13.5px; font-size: 18px;{LEFT_MARGIN}{RIGHT_MARGIN}"
 DESCRIPTION_TEXT = """
-This is the description of the tsb-space and how it works.
-bla bla bla
-new line bla bla
-new line bla
-"""
-SINGLE_DESCRIPTION_STYLE = LEFT_MARGIN + RIGHT_MARGIN
+This is the integration of the tsb-space in the ai4experiments platform.
+It works by specifying a series of high-level activities that must be performed in the specified order.
+After the activity plan is defined, the planner decomposes each high-level activity into smaller actions that the robot performs to fulfill the plan.
 
+Press ADD to start adding activities, Press INFO to get information about a specific activity.
+"""
+SINGLE_DESCRIPTION_STYLE = f"{LEFT_MARGIN}{RIGHT_MARGIN}"
 
 MAIN_BODY_DIV_CLASS = "grid justify-between grid-cols-3 gap-7"
-# MAIN_BODY_DIV_STYLE = "grid-template-columns: minmax(max-content, 25%) minmax(max-content, 25%) 10px minmax(max-content, 33%); width: 100vw; margin-top: 15px;" + LEFT_MARGIN + RIGHT_MARGIN
-MAIN_BODY_DIV_STYLE = "grid-template-columns: max-content max-content 10px 1fr; width: 100vw; margin-top: 15px;" + LEFT_MARGIN + RIGHT_MARGIN
+MAIN_BODY_DIV_STYLE = f"grid-template-columns: max-content max-content 9px 0.9fr; width: 90vw; margin-top: 13.5px;{LEFT_MARGIN}{RIGHT_MARGIN}"
+
+ACTIVITY_DETAILS_DIV_CLASS = "grid"
+ACTIVITY_DETAILS_DIV_STYLE = f"grid-template-columns: max-content auto; font-size: 27px; font-weight: semibold; height: 0px;{LEFT_MARGIN}{RIGHT_MARGIN}"
+
+ACTION_DETAILS_TEXT_CLASS = ""
+ACTION_DETAILS_TEXT_STYLE = f"margin-left: 0px; font-size: 18px; text-align: left;"
 
 ACTIONS_DIV_CLASS = "grid"
-# Setting height to 0 it'sa trick to solve the problem of the goal div changing size
-ACTIONS_DIV_STYLE = f"grid-template-columns: auto auto; font-size: 30px; font-weight: semibold; height: 0px;"
+ACTIONS_DIV_STYLE = f"grid-template-columns: auto auto auto; font-size: 27px; font-weight: semibold; height: 0px; column-gap: 3px; row-gap: 2px;"
 
 SINGLE_ACTION_P_CLASS = ""
-SINGLE_ACTION_P_STYLE = "font-weight: normal; font-size: 20px; margin-top: 15px;"
+SINGLE_ACTION_P_STYLE = f"font-weight: normal; font-size: 18px; margin-top: 13.5px;"
 
-ADD_BUTTON_CLASS = "bg-transparent hover:bg-blue-500 text-blue-700 font-semibold hover:text-white py-2 px-4 border border-blue-500 hover:border-transparent rounded m-2"
-ADD_BUTTON_STYLE = "font-weight: semibold; font-size: 20px; width: 100px;"
+BUTTON_FONT_SIZE = int(18*SCALE_FACTOR)
+ADD_BUTTON_CLASS = "bg-transparent hover:bg-blue-500 text-blue-700 font-semibold hover:text-white py-1.8 px-3.6 border border-blue-500 hover:border-transparent rounded m-1.8"
+ADD_BUTTON_STYLE = f"font-weight: semibold; font-size: {BUTTON_FONT_SIZE}px; width: 80px;"
 
 GOALS_DIV_CLASS = ""
-GOALS_DIV_STYLE = "font-size: 30px; font-weight: semibold;"
+GOALS_DIV_STYLE = "font-size: 27px; font-weight: semibold;"
 
-min_goal_box_height = len(all_activities) * 63
+min_goal_box_height = int(len(all_activities) * 56.7)
 GOALS_CONTAINER_DIV_CLASS = ""
-GOALS_CONTAINER_DIV_STYLE = f"border: 1px solid #000; min-height: {min_goal_box_height}px; font-weight: normal; font-size: 20px;\
- background-color:  #e1eff7; right-margin: 50px; width: 350px;"
+GOALS_CONTAINER_DIV_STYLE = f"border: 0.9px solid #000; min-height: {min_goal_box_height}px; font-weight: normal; font-size: 18px;\
+ background-color:  #e1eff7; right-margin: 45px; width: 315px;"
 
 CLEAR_SOLVE_BUTTONS_DIV_CLASS = "flex grid-cols-2"
-CLEAR_SOLVE_BUTTONS_DIV_STYLE = ""
+CLEAR_SOLVE_BUTTONS_DIV_STYLE = "margin-top: 4px; column-gap: 3px;"
 
 CLEAR_SOLVE_BUTTONS_CLASS = ADD_BUTTON_CLASS
-CLEAR_SOLVE_BUTTONS_STYLE = "font-weight: semibold; font-size: 20px;"
+CLEAR_SOLVE_BUTTONS_STYLE = f"font-weight: semibold; font-size: {BUTTON_FONT_SIZE}px;"
 
 PLAN_DIV_CLASS = ""
-PLAN_DIV_STYLE = f"font-size: 30px; font-weight: semibold;"
+PLAN_DIV_STYLE = f"font-size: 27px; font-weight: semibold;"
 
 PLAN_PART_P_CLASS = ""
-PLAN_PART_P_STYLE = f"font-weight: normal; font-size: 20px;"
+PLAN_PART_P_STYLE = f"font-weight: normal; font-size: 18px;"
 
 CLEAR_PLAN_BUTTON_CLASS = ADD_BUTTON_CLASS
-CLEAR_PLAN_BUTTON_STYLE = "font-weight: semibold; font-size: 20px;"
+CLEAR_PLAN_BUTTON_STYLE = f"font-weight: semibold; font-size: {BUTTON_FONT_SIZE}px;"
 
 
 def main_page(gui: Gui):
-    wp = jp.WebPage(delete_flag = False)
+    wp = jp.WebPage(delete_flag=False)
     wp.page_type = 'main'
     title_div = jp.Div(
         a=wp,
@@ -70,16 +79,12 @@ def main_page(gui: Gui):
     )
     fbk_logo_div = jp.Div(
         a=title_div,
-        # text="FBK LOGO",
-        # style="font-size: 30px;",
-        style="height: 160px;",
+        style="height: 144px;",
     )
     fbk_logo = jp.Img(
-        # src="/static/logos/fbk.webp",
         src="/static/logos/fbk.png",
         a=fbk_logo_div,
         classes="w3-image",
-        # style="height: 100%; length: auto;",
     )
     title_text_div = jp.Div(
         a=title_div,
@@ -88,14 +93,12 @@ def main_page(gui: Gui):
     )
     trasys_logo_div = jp.Div(
         a=title_div,
-        # text="TRASYS LOGO",
-        style="height: 160px;",
+        style="height: 144px;",
     )
     trasys = jp.Img(
         src="/static/logos/trasys.png",
         a=trasys_logo_div,
         classes="w3-image",
-        # style="height: 10px; length: 10px;"
     )
 
     description_div = jp.Div(
@@ -115,14 +118,48 @@ def main_page(gui: Gui):
         style=MAIN_BODY_DIV_STYLE,
     )
 
+    # Create a separate div to display action details at the bottom of the page
+    activity_details_div = jp.Div(
+        a=wp,
+        classes=ACTIVITY_DETAILS_DIV_CLASS,
+        style=ACTIVITY_DETAILS_DIV_STYLE,
+    )
+
+    # Function to update action details
+    def update_activity_details(name, activity_details_div, component, msg):
+
+        activity_details_div.text="Activity info:"
+        image_path = f"/static/logos/activities/{name.lower()}.png"
+        activity_details_div.delete_components()
+        _ = jp.P(
+            a=activity_details_div,
+            text="",
+        )
+
+        action_details_img = jp.Img(
+            style="width: 130px; height: 130px;",
+            a=activity_details_div,
+            src=image_path,
+            classes="w3-image",
+        )
+        action_details_text = jp.P(
+            a=activity_details_div,
+            text=activity_description_map.get(name, "Error: no text found for the action"),
+            classes=ACTION_DETAILS_TEXT_CLASS,
+            style=ACTION_DETAILS_TEXT_STYLE,
+            )
+
     actions_div = jp.Div(
         a=main_body_div,
-        text="ACTIONS:",
+        text="ACTIVITIES:",
         classes=ACTIONS_DIV_CLASS,
         style=ACTIONS_DIV_STYLE,
     )
 
-    # Useless paragprah, added just as a place-holder
+    _ = jp.P(
+        a=actions_div,
+        text="",
+    )
     _ = jp.P(
         a=actions_div,
         text="",
@@ -136,6 +173,7 @@ def main_page(gui: Gui):
             classes=SINGLE_ACTION_P_CLASS,
             style=SINGLE_ACTION_P_STYLE,
         )
+
         act_button = jp.Input(
             a=actions_div,
             value="ADD",
@@ -144,6 +182,15 @@ def main_page(gui: Gui):
             style=ADD_BUTTON_STYLE,
         )
         act_button.on('click', partial(my_click, act, gui))
+
+        info_button = jp.Input(
+            a=actions_div,
+            value="INFO",
+            type="submit",
+            classes=ADD_BUTTON_CLASS,
+            style=ADD_BUTTON_STYLE,
+        )
+        info_button.on('click', partial(update_activity_details, act, activity_details_div))
 
     goals_div = jp.Div(
         a=main_body_div,
@@ -184,7 +231,6 @@ def main_page(gui: Gui):
     )
     solve.on('click', gui.generate_problem_click)
 
-    # Useless div, added just as a place-holder
     _ = jp.Div(
         a=main_body_div,
         classes="",
@@ -200,28 +246,5 @@ def main_page(gui: Gui):
     gui.plan_div = plan_div
 
     gui.update_planning_execution()
-
-    # if gui.plan is None:
-    #     single_p = jp.P(
-    #         a=plan_div,
-    #         text="No plan found yet.",
-    #         classes=PLAN_PART_P_CLASS,
-    #         style=PLAN_PART_P_STYLE,
-    #     )
-    # else:
-    #     for plan_activity in gui.plan:
-    #         text = activity_str(plan_activity)
-    #         single_p = jp.P(
-    #             a=plan_div,
-    #             text=text,
-    #             classes=PLAN_PART_P_CLASS,
-    #             style=PLAN_PART_P_STYLE,
-    #         )
-    #     single_p = jp.P(
-    #         a=plan_div,
-    #         text=f"It reaches {gui.reached_goals} goals.",
-    #         classes=PLAN_PART_P_CLASS,
-    #         style=PLAN_PART_P_STYLE,
-    #     )
 
     return wp
